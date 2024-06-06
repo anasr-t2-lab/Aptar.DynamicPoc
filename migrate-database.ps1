@@ -1,0 +1,1 @@
+dotnet run --project Aptar.DynamicPoc --migrate-database
