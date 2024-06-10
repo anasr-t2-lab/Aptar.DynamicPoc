@@ -1,5 +1,6 @@
 ﻿using Aptar.DynamicPoc.Entities;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -15,7 +16,8 @@ namespace Aptar.DynamicPoc.Data;
 
 public class DynamicPocDbContext : AbpDbContext<DynamicPocDbContext>
 {
-    public DbSet<VendorValidation> VendorValidations { get; set; }
+    public DbSet<RequestType> RequestTypes { get; set; }
+    public DbSet<Request> Requests { get; set; }
 
     public DynamicPocDbContext(DbContextOptions<DynamicPocDbContext> options)
         : base(options)
@@ -121,10 +123,10 @@ public class DynamicPocDbContext : AbpDbContext<DynamicPocDbContext>
 ]
 ";
 
-        var validations = new VendorValidation[]
+        var validations = new RequestType[]
         {
-                new VendorValidation{ Id=1, Name = "Hamada", FormSchema = JsonDocument.Parse(formlyTemplate)}
+                new RequestType{ Id=1, Name = "Hamada", FormSchema = JArray.Parse(formlyTemplate)}
         };
-        modelBuilder.Entity<VendorValidation>().HasData(validations);
+        modelBuilder.Entity<RequestType>().HasData(validations);
     }
 }

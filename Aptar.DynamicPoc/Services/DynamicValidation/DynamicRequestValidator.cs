@@ -5,7 +5,7 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation
 {
     public class DynamicRequestValidator : AbstractValidator<JObject>
     {
-        public DynamicRequestValidator(JArray formlyTemplate)
+        public DynamicRequestValidator(JArray formlyTemplate, JObject model)
         {
             foreach (var field in formlyTemplate)
             {
@@ -13,6 +13,7 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation
                 string type = field["type"].ToString();
                 var props = (JObject)field["props"];
                 var validators = (JObject)field["validators"];
+                var expressions = (JObject)field["expressions"];
 
 
                 // appraoch 1
@@ -24,7 +25,8 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation
                 //}
 
                 // appraoch 2
-                var strategies = ValidationStrategyFactory.GetStrategies(props, validators);
+
+                var strategies = ValidationStrategyFactory.GetStrategies(model, props, validators, expressions).ToList();
 
                 foreach (var strategy in strategies)
                 {

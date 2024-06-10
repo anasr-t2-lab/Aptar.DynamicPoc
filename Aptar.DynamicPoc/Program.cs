@@ -35,6 +35,7 @@ public class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddControllers().AddNewtonsoftJson();
             builder.Host.AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog();
