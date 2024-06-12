@@ -16,8 +16,9 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation.Validators
                 //    .WithMessage($"{key} must not exceed {maxLength} characters.");
 
                 int maxLength = props["maxLength"].Value<int>();
-                validator.RuleFor(x => x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString())
+                validator.RuleFor(x => x.ContainsKey(key) ? x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString() : default)
                     .MaximumLength(maxLength)
+                    .When(x => x[key] != null)
                     .WithMessage($"{key} must not exceed {maxLength} characters.");
             }
         }

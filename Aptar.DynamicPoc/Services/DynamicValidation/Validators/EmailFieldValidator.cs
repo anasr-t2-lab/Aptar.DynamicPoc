@@ -15,9 +15,6 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation.Validators
                     .EmailAddress()
                     .WithMessage($"{key} must be a valid email address.");
 
-            //validator.RuleFor(x => ((JObject)(object)x)[key].ToString())
-            //    .EmailAddress()
-            //    .WithMessage($"{key} must be a valid email address.");
         }
     }
 }

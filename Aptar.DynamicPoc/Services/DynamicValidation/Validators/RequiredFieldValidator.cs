@@ -10,12 +10,12 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation.Validators
         {
             //if (templateOptions["required"]?.Value<bool>() == true)
             //{
-                validator.RuleFor(x => x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString())
-                        .NotEmpty()
-                        .WithMessage($"{key} is required.");
-                //validator.RuleFor(x => ((JObject)(object)x)[key])
-                //    .NotEmpty()
-                //    .WithMessage($"{key} is required.");
+            validator.RuleFor(x => x.ContainsKey(key) ? x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString() : default)
+                    .NotEmpty()
+                    .WithMessage($"{key} is required.");
+            //validator.RuleFor(x => ((JObject)(object)x)[key])
+            //    .NotEmpty()
+            //    .WithMessage($"{key} is required.");
             //}
         }
     }

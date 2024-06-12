@@ -3,6 +3,7 @@ using System;
 using Aptar.DynamicPoc.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Aptar.DynamicPoc.Migrations
 {
     [DbContext(typeof(DynamicPocDbContext))]
-    partial class DynamicPocDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240612133205_AddRequestSchema")]
+    partial class AddRequestSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

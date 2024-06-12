@@ -1,6 +1,9 @@
 ﻿using Aptar.DynamicPoc.Data;
 using Aptar.DynamicPoc.Entities;
 using Aptar.DynamicPoc.Services.DynamicValidation;
+using Aptar.DynamicPoc.Services.SchemaDynamicValidation;
+using Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 //using NCalcAsync;
@@ -452,78 +455,105 @@ public class VendorValidationsController : AbpController
 
     [HttpPost]
     [Route("submit")]
-    public IActionResult Submit([FromBody] JObject model)
+    public async Task<IActionResult> Submit([FromBody] JObject model)
     {
 
         FormSchmea mmm = new();
 
-        Field colorType = new()
+        //Field colorType = new()
+        //{
+        //    Key = "colorType",
+        //    Type = "radio",
+        //    Properties = new()
+        //    {
+        //        { "placeholder" , "Color Type" },
+        //        { "label" , "Color Type" }
+        //    },
+        //    Validators = new()
+        //    {
+        //        new Validator
+        //        {
+        //            Type = "required",
+        //            Message = "Color Type is required"
+        //        }
+        //    },
+        //    Options = new()
+        //    {
+        //        new Option
+        //        {
+        //            Label = "RGB",
+        //            Value = "RGB"
+        //        },
+        //        new Option
+        //        {
+        //            Label = "HEX",
+        //            Value = "HEX"
+        //        },
+        //        new Option
+        //        {
+        //            Label = "CMYK",
+        //            Value = "CMYK"
+        //        }
+        //    }
+        //};
+
+        //mmm.Fields.Add(colorType);
+
+        mmm.AddField("Color", "input", new() { { "placeholder", "Color" }, { "label", "Color" } }, new List<ValidationRule>() { new RquiredRule("Hamada")});
+        mmm.AddField("ColorType", "input", new() { { "placeholder", "Color" }, { "label", "Color" } }, new List<ValidationRule>() { new RquiredRule()});
+        mmm.AddField("Hamada", "input", new() { { "placeholder", "Hamada" }, { "label", "Hamada" } }, new List<ValidationRule>());
+        mmm.AddField("Quantity", "input", new() { { "placeholder", "Hamada" }, { "label", "Hamada" } }, new List<ValidationRule>() { new RquiredRule(), new MinRule(5), new MaxRule(20)});
+        //mmm.AddField("partNumber", "input", new() { { "placeholder", "Part Number" }, { "label", "Part Number" } }, new List<ValidationRule>() { new Validator { Type = "required", Message = "Part Number is required" }, new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } } });
+        //mmm.AddField("translucencePercentage",
+        //             "input",
+        //             new() { { "placeholder", "Part Number" }, { "label", "Part Number" } },
+        //             new List<ValidationRule>()
+        //             {
+        //                 new Validator { Type = "required", Message = "Part Number is required" },
+        //                 new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } }
+        //             });
+
+
+        //mmm.AddField("name", "text", new() { { "placeholder", "name" } },
+        //    new List<ValidationRule>
+        //    {
+        //        new Validator{ Type = "required", Message = "Name is required" },
+        //        new Validator{ Type = "minLength", Message = "Name must be at least 3 characters long", Parameters = new Dictionary<string, object>{ { "length", 3 } } },
+        //        new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
+        //    });
+
+        //mmm.AddField("Desc", "text", new() { { "placeholder", "Desc" } },
+        //    new List<ValidationRule>
+        //    {
+        //        new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
+        //    });
+        _dbContext.RequestSchemas.Add(new RequestSchema
         {
-            Key = "colorType",
-            Type = "radio",
-            Properties = new()
-            {
-                { "placeholder" , "Color Type" },
-                { "label" , "Color Type" }
-            },
-            Validators = new()
-            {
-                new Validator
-                {
-                    Type = "required",
-                    Message = "Color Type is required"
-                }
-            },
-            Options = new()
-            {
-                new Option
-                {
-                    Label = "RGB",
-                    Value = "RGB"
-                },
-                new Option
-                {
-                    Label = "HEX",
-                    Value = "HEX"
-                },
-                new Option
-                {
-                    Label = "CMYK",
-                    Value = "CMYK"
-                }
-            }
-        };
-
-        mmm.Fields.Add(colorType);
-
-        mmm.AddField("color", "input", new() { { "placeholder", "Color" }, { "label", "Color" } }, new List<Validator>() { new Validator { Type = "required", Message = "color is required" } });
-        mmm.AddField("partNumber", "input", new() { { "placeholder", "Part Number" }, { "label", "Part Number" } }, new List<Validator>() { new Validator { Type = "required", Message = "Part Number is required" }, new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } } });
-        mmm.AddField("translucencePercentage", "input", new() { { "placeholder", "Part Number" }, { "label", "Part Number" } }, new List<Validator>() { new Validator { Type = "required", Message = "Part Number is required" }, new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } } });
+            Name = "Hamada",
+            Fields = mmm.Fields
+        });
+        await _dbContext.SaveChangesAsync();
 
 
-        mmm.AddField("name", "text", new() { { "placeholder", "name" } },
-            new List<Validator>
-            {
-                new Validator{ Type = "required", Message = "Name is required" },
-                new Validator{ Type = "minLength", Message = "Name must be at least 3 characters long", Parameters = new Dictionary<string, object>{ { "length", 3 } } },
-                new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
-            });
 
-        mmm.AddField("Desc", "text", new() { { "placeholder", "Desc" } },
-            new List<Validator>
-            {
-                new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
-            });
-        if (model == null)
-        {
-            return BadRequest("Model is null.");
-        }
+        var rs = await _dbContext.RequestSchemas.FirstAsync();
 
-        // Process the JObject model
-        string name = model["name"]?.ToString();
-        int age = model["age"]?.ToObject<int>() ?? 0;
-        DateTime date = model["date"]?.ToObject<DateTime>() ?? DateTime.MinValue;
+        //if (model == null)
+        //{
+        //    return BadRequest("Model is null.");
+        //}
+        //var x = new Validator();
 
-        return Ok($"Name: {name}, Age: {age}, Date: {date}");
+        //foreach (var field in mmm.Fields)
+        //{
+        //    field.Validators.ForEach(f => f.ApplyRules(x, field.Key, model));
+        //}
+
+        //var result = x.Validate(model);
+
+        return Ok(rs);
+       
     }
+
+    public class Validator: AbstractValidator<JObject> { }
 }
