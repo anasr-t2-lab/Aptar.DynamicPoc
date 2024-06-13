@@ -124,7 +124,8 @@ public class AptarRequestsController : AbpController
                 {
                     { "label", "Shipping Date" },
                     { "uiRow", 5},
-                    { "uiColPercentage", 50}
+                    { "uiColPercentage", 50},
+                    { "expression.hide", "!sampleSubmission" }
                 },
                 ValidationRules = new List<ValidationRule>
                 {
@@ -142,7 +143,8 @@ public class AptarRequestsController : AbpController
                     { "label", "Shipping Address" },
                     { "rows", 3 },
                     { "uiRow", 6},
-                    { "uiColPercentage", 100}
+                    { "uiColPercentage", 100},
+                    { "expression.hide", "!sampleSubmission" }
                 },
                 ValidationRules = new List<ValidationRule>
                 {
