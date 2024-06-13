@@ -1,6 +1,5 @@
 ﻿using Aptar.DynamicPoc.Data;
 using Aptar.DynamicPoc.Entities;
-using Aptar.DynamicPoc.Services.DynamicValidation;
 using Aptar.DynamicPoc.Services.SchemaDynamicValidation;
 using Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules;
 using FluentValidation;
@@ -8,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 //using NCalcAsync;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.AspNetCore.Mvc;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Aptar.DynamicPoc.Controllers;
 
@@ -17,57 +18,6 @@ public class AHomeController : AbpController
     public ActionResult Index()
     {
         return Redirect("~/swagger");
-    }
-}
-
-[Route("requests")]
-public class RequestsController : AbpController
-{
-    private readonly DynamicPocDbContext _dbContext;
-
-    public RequestsController(DynamicPocDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetRequests()
-    {
-        var requests = await _dbContext.Requests.ToListAsync();
-        return Ok(requests);
-    }
-
-    [HttpGet("types")]
-    public async Task<IActionResult> GetRequestTypes()
-    {
-        var requests = await _dbContext.RequestTypes.ToListAsync();
-        return Ok(requests);
-    }
-
-    [HttpPost("{requestTypeId:int::min(1)}")]
-    public async Task<IActionResult> AddRequest(int requestTypeId, [FromBody] JObject requestBody)
-    {
-        var requestType = await _dbContext.RequestTypes.FirstOrDefaultAsync(x => x.Id == requestTypeId);
-
-        var validator = new DynamicRequestValidator(requestType.FormSchema, requestBody);
-        var result = validator.Validate(requestBody);
-
-        if (!result.IsValid)
-        {
-            var errors = string.Join(", ", result.Errors);
-            return BadRequest(errors);
-        }
-
-        var request = new Request
-        {
-            RequestTypeId = requestTypeId,
-            Body = requestBody
-        };
-
-        _dbContext.Requests.Add(request);
-
-        await _dbContext.SaveChangesAsync();
-        return Ok();
     }
 }
 
@@ -455,105 +405,159 @@ public class VendorValidationsController : AbpController
 
     [HttpPost]
     [Route("submit")]
-    public async Task<IActionResult> Submit([FromBody] JObject model)
+    public async Task<IActionResult> Submit()
     {
+        List<Field> fields = new List<Field>()
+        {
+            new Field
+            {
+                Key = "colorType",
+                Type = "int",
+                UiType = "radio",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Color Type" },
+                    { "placeholder", "Color Type" }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule(),
+                    new InOptionsRule()
+                },
+                Options = new List<Option>
+                {
+                    new Option { Label = "Pantone", Value = "Pantone" },
+                    new Option { Label = "RGB", Value = "RGB" },
+                    new Option { Label = "HEX", Value = "HEX" },
+                    new Option { Label = "CMYK", Value = "CMYK" }
+                }
+            },
+            new Field
+            {
+                Key = "color",
+                Type = "string",
+                UiType = "color",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Color" },
+                    { "placeholder", "Color" }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule()
+                }
+            },
+            new Field
+            {
+                Key = "partNumber",
+                Type = "string",
+                UiType = "input",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Part Number" },
+                    { "placeholder", "e.g., p-12345" }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule(),
+                    new PatternRule("^p-\\d+$", "Part number must start with \"p-\" and be followed by positive numbers.")
+                }
+            },
+            new Field
+            {
+                Key = "translucencePercentage",
+                Type = "int",
+                UiType = "slider",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Translucence percentage" }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule(),
+                    new MinRule(1, "Number must be at least 1."),
+                    new MaxRule(100, "Number must be at most 100.")
+                }
+            },
+            new Field
+            {
+                Key = "sampleSubmission",
+                Type = "bool",
+                UiType = "checkbox",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Sample Submission" }
+                }
+            },
+            new Field
+            {
+                Key = "shippingAddress",
+                Type = "string",
+                UiType = "textarea",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Shipping Address" },
+                    { "rows", 3 }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule("sampleSubmission"),
+                    new MaxLengthRule(250)
+                }
+            },
+            new Field
+            {
+                Key = "shippingDate",
+                Type = "DateTime",
+                UiType = "date",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Shipping Date" }
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule("sampleSubmission"),
+                    new DateRangeRule(maxDate: new DateTime(2024,10,23))
+                }
+            }
+        };
 
-        FormSchmea mmm = new();
-
-        //Field colorType = new()
-        //{
-        //    Key = "colorType",
-        //    Type = "radio",
-        //    Properties = new()
-        //    {
-        //        { "placeholder" , "Color Type" },
-        //        { "label" , "Color Type" }
-        //    },
-        //    Validators = new()
-        //    {
-        //        new Validator
-        //        {
-        //            Type = "required",
-        //            Message = "Color Type is required"
-        //        }
-        //    },
-        //    Options = new()
-        //    {
-        //        new Option
-        //        {
-        //            Label = "RGB",
-        //            Value = "RGB"
-        //        },
-        //        new Option
-        //        {
-        //            Label = "HEX",
-        //            Value = "HEX"
-        //        },
-        //        new Option
-        //        {
-        //            Label = "CMYK",
-        //            Value = "CMYK"
-        //        }
-        //    }
-        //};
-
-        //mmm.Fields.Add(colorType);
-
-        mmm.AddField("Color", "input", new() { { "placeholder", "Color" }, { "label", "Color" } }, new List<ValidationRule>() { new RquiredRule("Hamada")});
-        mmm.AddField("ColorType", "input", new() { { "placeholder", "Color" }, { "label", "Color" } }, new List<ValidationRule>() { new RquiredRule()});
-        mmm.AddField("Hamada", "input", new() { { "placeholder", "Hamada" }, { "label", "Hamada" } }, new List<ValidationRule>());
-        mmm.AddField("Quantity", "input", new() { { "placeholder", "Hamada" }, { "label", "Hamada" } }, new List<ValidationRule>() { new RquiredRule(), new MinRule(5), new MaxRule(20)});
-        //mmm.AddField("partNumber", "input", new() { { "placeholder", "Part Number" }, { "label", "Part Number" } }, new List<ValidationRule>() { new Validator { Type = "required", Message = "Part Number is required" }, new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } } });
-        //mmm.AddField("translucencePercentage",
-        //             "input",
-        //             new() { { "placeholder", "Part Number" }, { "label", "Part Number" } },
-        //             new List<ValidationRule>()
-        //             {
-        //                 new Validator { Type = "required", Message = "Part Number is required" },
-        //                 new Validator { Type = "pattern", Message = "pattern", Parameters = new Dictionary<string, object>() { { "pattern", "^p-\\d+$" } } }
-        //             });
-
-
-        //mmm.AddField("name", "text", new() { { "placeholder", "name" } },
-        //    new List<ValidationRule>
-        //    {
-        //        new Validator{ Type = "required", Message = "Name is required" },
-        //        new Validator{ Type = "minLength", Message = "Name must be at least 3 characters long", Parameters = new Dictionary<string, object>{ { "length", 3 } } },
-        //        new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
-        //    });
-
-        //mmm.AddField("Desc", "text", new() { { "placeholder", "Desc" } },
-        //    new List<ValidationRule>
-        //    {
-        //        new Validator{ Type = "maxLength", Message = "Name must be at most 50 characters long", Parameters = new Dictionary<string, object>{ { "length", 50 } } }
-        //    });
         _dbContext.RequestSchemas.Add(new RequestSchema
         {
-            Name = "Hamada",
-            Fields = mmm.Fields
+            Name = "ColorMatch",
+            Fields = fields
         });
         await _dbContext.SaveChangesAsync();
 
+        return Ok();
 
-
-        var rs = await _dbContext.RequestSchemas.FirstAsync();
-
-        //if (model == null)
-        //{
-        //    return BadRequest("Model is null.");
-        //}
-        //var x = new Validator();
-
-        //foreach (var field in mmm.Fields)
-        //{
-        //    field.Validators.ForEach(f => f.ApplyRules(x, field.Key, model));
-        //}
-
-        //var result = x.Validate(model);
-
-        return Ok(rs);
-       
     }
 
-    public class Validator: AbstractValidator<JObject> { }
+    [HttpPost]
+    [Route("Validate")]
+    public async Task<IActionResult> Validate([FromBody] JObject model)
+    {
+        var schema = await _dbContext.RequestSchemas.FirstAsync(x=>x.Name == "ColorMatch");
+
+        if (model == null)
+        {
+            return BadRequest("Model is null.");
+        }
+        var validator = new DynamicValidator(model, schema.Fields);
+
+        var result = validator.Validate(model);
+
+        return Ok(schema);
+
+    }
+
+    public class DynamicValidator : AbstractValidator<JObject> {
+        public DynamicValidator(JObject model, List<Field> fields)
+        {
+            foreach (var field in fields)
+            {
+                field.ValidationRules?.ForEach(f => f.ApplyRules(this, field, model));
+            }
+        }
+    }
 }

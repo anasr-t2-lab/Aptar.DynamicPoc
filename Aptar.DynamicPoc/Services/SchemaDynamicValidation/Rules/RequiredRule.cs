@@ -3,22 +3,23 @@ using Newtonsoft.Json.Linq;
 
 namespace Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules
 {
-    public class RquiredRule : ValidationRule
+    public class RequiredRule : ValidationRule
     {
-        private readonly string _expression;
+        public string Expression { get; private set; }
 
-        public RquiredRule(string? expression = default, string? message = default) : base(message)
+        public RequiredRule(string? expression = default, string? message = default) : base("Required", message)
         {
-            _expression = expression;
+            Expression = expression;
         }
 
-        public override void ApplyRules(AbstractValidator<JObject> validator, string key, JObject model)
+        public override void ApplyRules(AbstractValidator<JObject> validator, Field field, JObject model)
         {
-            if (!string.IsNullOrWhiteSpace(_expression) && model is not null)
+            string key = field.Key;
+            if (!string.IsNullOrWhiteSpace(Expression) && model is not null)
             {
                 validator.RuleFor(x => x.ContainsKey(key) ? x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString() : default)
                    .NotEmpty()
-                   .When(x => ExpressionLogicalEvaluator.Evaluate(model, _expression))
+                   .When(x => ExpressionLogicalEvaluator.Evaluate(model, Expression))
                    .WithMessage(Message ?? $"{key} is required.");
             }
             else

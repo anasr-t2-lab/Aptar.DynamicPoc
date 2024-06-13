@@ -104,7 +104,7 @@ namespace Aptar.DynamicPoc.Data.Extensions
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (!assembly.FullName.StartsWith("Neurocrine."))
+                if (!assembly.FullName.StartsWith("Aptar."))
                     continue;
 
                 var type = assembly.GetType(typeFullName);

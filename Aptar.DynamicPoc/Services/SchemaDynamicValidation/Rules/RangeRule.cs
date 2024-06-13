@@ -5,21 +5,22 @@ namespace Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules
 {
     public class RangeRule : ValidationRule
     {
-        private readonly double _min;
-        private readonly double _max;
+        public double Min { get; private set; }
+        public double Max { get; private set; }
 
-        public RangeRule(double min, double max, string? message = default) : base(message)
+        public RangeRule(double min, double max, string? message = default) : base("Range", message)
         {
-            _min = min;
-            _max = max;
+            Min = min;
+            Max = max;
         }
 
-        public override void ApplyRules(AbstractValidator<JObject> validator, string key, JObject model)
+        public override void ApplyRules(AbstractValidator<JObject> validator, Field field, JObject model)
         {
+            string key = field.Key;
 
             validator.RuleFor(x => x.ContainsKey(key) ? x.GetValue(key, StringComparison.OrdinalIgnoreCase).Value<double>() : default)
-            .InclusiveBetween(_min, _max)
-            .WithMessage($"{key} must be between {_min} and {_max}.");
+            .InclusiveBetween(Min, Max)
+            .WithMessage($"{key} must be between {Min} and {Max}.");
         }
     }
 

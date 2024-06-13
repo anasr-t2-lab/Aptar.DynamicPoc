@@ -5,19 +5,20 @@ namespace Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules
 {
     public class MaxRule : ValidationRule
     {
-        private readonly double _max;
+        public double Max { get; private set; }
 
-        public MaxRule(double max, string? message = default) : base(message)
+        public MaxRule(double max, string? message = default) : base("Max", message)
         {
-            _max = max;
+            Max = max;
         }
 
-        public override void ApplyRules(AbstractValidator<JObject> validator, string key, JObject model)
+        public override void ApplyRules(AbstractValidator<JObject> validator, Field field, JObject model)
         {
+            string key = field.Key;
 
             validator.RuleFor(x => x.ContainsKey(key) ? x.GetValue(key, StringComparison.OrdinalIgnoreCase).Value<double>() : default)
-                .LessThanOrEqualTo(_max)
-                .WithMessage($"{key} must be less than {_max}.");
+                .LessThanOrEqualTo(Max)
+                .WithMessage($"{key} must be less than {Max}.");
         }
     }
 

@@ -32,6 +32,7 @@ namespace Aptar.DynamicPoc.Migrations
         {
             migrationBuilder.DropTable(
                 name: "RequestSchemas");
+
         }
     }
 }

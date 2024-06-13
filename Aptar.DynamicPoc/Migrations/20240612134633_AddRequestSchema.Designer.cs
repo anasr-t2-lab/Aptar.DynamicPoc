@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Aptar.DynamicPoc.Migrations
 {
     [DbContext(typeof(DynamicPocDbContext))]
-    [Migration("20240612133205_AddRequestSchema")]
+    [Migration("20240612134633_AddRequestSchema")]
     partial class AddRequestSchema
     {
         /// <inheritdoc />

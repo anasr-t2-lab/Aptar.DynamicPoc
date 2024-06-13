@@ -5,18 +5,20 @@ namespace Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules
 {
     public class PatternRule : ValidationRule
     {
-        private readonly string _pattern;
+        public string Pattern { get; private set; }
 
-        public PatternRule(string pattern, string? message = default) : base(message)
+        public PatternRule(string pattern, string? message = default) : base("Pattern", message)
         {
-            _pattern = pattern;
+            Pattern = pattern;
         }
 
-        public override void ApplyRules(AbstractValidator<JObject> validator, string key, JObject model)
+        public override void ApplyRules(AbstractValidator<JObject> validator, Field field, JObject model)
         {
+            string key = field.Key;
+
             validator.RuleFor(x => x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToString())
-            .Matches(_pattern)
-            .WithMessage($"{key} must match the pattern {_pattern}.");
+            .Matches(Pattern)
+            .WithMessage($"{key} must match the pattern {Pattern}.");
         }
     }
 }

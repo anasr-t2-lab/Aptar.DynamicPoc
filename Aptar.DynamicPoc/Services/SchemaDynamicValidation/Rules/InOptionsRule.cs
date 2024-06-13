@@ -5,17 +5,16 @@ namespace Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules
 {
     public class InOptionsRule : ValidationRule
     {
-        private readonly List<Option> _options;
-
-        public InOptionsRule(List<Option> options, string? message = default) : base(message)
+        public InOptionsRule(string? message = default) : base("InOptions", message)
         {
-            _options = options;
         }
 
-        public override void ApplyRules(AbstractValidator<JObject> validator, string key, JObject model)
+        public override void ApplyRules(AbstractValidator<JObject> validator, Field field, JObject model)
         {
+            string key = field.Key;
+            
             validator.RuleFor(x => x.GetValue(key, StringComparison.OrdinalIgnoreCase))
-                .Must(value => _options.Select(o => o.Value.ToString().ToLower()).Contains(value.Value<string>().ToLower()))
+                .Must(value => field.Options.Select(o => o.Value.ToString().ToLower()).Contains(value.Value<string>().ToLower()))
                 .WithMessage($"{key} must be one of the predefined options.");
         }
     }
