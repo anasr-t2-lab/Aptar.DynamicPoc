@@ -30,9 +30,9 @@ namespace Aptar.DynamicPoc.Services.DynamicValidation.Validators
             if (minDate.HasValue || maxDate.HasValue)
             {
                 validator.RuleFor(x => x.GetValue(key, StringComparison.OrdinalIgnoreCase).ToObject<DateTime>())
-                    .Must(date => !minDate.HasValue || date >= minDate.Value)
+                    .Must(date => date == default || !minDate.HasValue || date >= minDate.Value)
                     .WithMessage($"{key} must be on or after {minDate?.ToShortDateString()}.")
-                    .Must(date => !maxDate.HasValue || date <= maxDate.Value)
+                    .Must(date => date == default || !maxDate.HasValue || date <= maxDate.Value)
                     .WithMessage($"{key} must be on or before {maxDate?.ToShortDateString()}.");
             }
         }
