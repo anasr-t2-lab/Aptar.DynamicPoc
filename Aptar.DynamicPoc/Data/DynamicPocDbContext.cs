@@ -19,6 +19,8 @@ public class DynamicPocDbContext : AbpDbContext<DynamicPocDbContext>
     public DbSet<RequestType> RequestTypes { get; set; }
     public DbSet<Request> Requests { get; set; }
     public DbSet<RequestSchema> RequestSchemas { get; set; }
+    public DbSet<AptarRequest> AptarRequests { get; set; }
+
 
     public DynamicPocDbContext(DbContextOptions<DynamicPocDbContext> options)
         : base(options)

@@ -1,8 +1,7 @@
 ﻿using Aptar.DynamicPoc.Data;
 using Aptar.DynamicPoc.Entities;
-using Aptar.DynamicPoc.Services.DynamicValidation;
-using Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules;
 using Aptar.DynamicPoc.Services.SchemaDynamicValidation;
+using Aptar.DynamicPoc.Services.SchemaDynamicValidation.Rules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -34,7 +33,9 @@ public class AptarRequestsController : AbpController
                 Properties = new Dictionary<string, object>()
                 {
                     { "label", "Color Type" },
-                    { "placeholder", "Color Type" }
+                    { "placeholder", "Color Type" },
+                    { "uiRow", 1},
+                    { "uiColPercentage", 50}
                 },
                 ValidationRules = new List<ValidationRule>
                 {
@@ -57,7 +58,9 @@ public class AptarRequestsController : AbpController
                 Properties = new Dictionary<string, object>()
                 {
                     { "label", "Color" },
-                    { "placeholder", "Color" }
+                    { "placeholder", "Color" },
+                    { "uiRow", 1},
+                    { "uiColPercentage", 50}
                 },
                 ValidationRules = new List<ValidationRule>
                 {
@@ -72,7 +75,9 @@ public class AptarRequestsController : AbpController
                 Properties = new Dictionary<string, object>()
                 {
                     { "label", "Part Number" },
-                    { "placeholder", "e.g., p-12345" }
+                    { "placeholder", "e.g., p-12345" },
+                    { "uiRow", 2},
+                    { "uiColPercentage", 25}
                 },
                 ValidationRules = new List<ValidationRule>
                 {
@@ -87,7 +92,9 @@ public class AptarRequestsController : AbpController
                 UiType = "slider",
                 Properties = new Dictionary<string, object>()
                 {
-                    { "label", "Translucence percentage" }
+                    { "label", "Translucence percentage" },
+                    { "uiRow", 3},
+                    { "uiColPercentage", 100}
                 },
                 ValidationRules = new List<ValidationRule>
                 {
@@ -103,7 +110,26 @@ public class AptarRequestsController : AbpController
                 UiType = "checkbox",
                 Properties = new Dictionary<string, object>()
                 {
-                    { "label", "Sample Submission" }
+                    { "label", "Sample Submission" },
+                    { "uiRow", 4},
+                    { "uiColPercentage", 25}
+                }
+            },
+            new Field
+            {
+                Key = "shippingDate",
+                Type = "DateTime",
+                UiType = "date",
+                Properties = new Dictionary<string, object>()
+                {
+                    { "label", "Shipping Date" },
+                    { "uiRow", 5},
+                    { "uiColPercentage", 50}
+                },
+                ValidationRules = new List<ValidationRule>
+                {
+                    new RequiredRule("sampleSubmission"),
+                    new DateRangeRule(maxDate: new DateTime(2024,10,23))
                 }
             },
             new Field
@@ -114,27 +140,14 @@ public class AptarRequestsController : AbpController
                 Properties = new Dictionary<string, object>()
                 {
                     { "label", "Shipping Address" },
-                    { "rows", 3 }
+                    { "rows", 3 },
+                    { "uiRow", 6},
+                    { "uiColPercentage", 100}
                 },
                 ValidationRules = new List<ValidationRule>
                 {
                     new RequiredRule("sampleSubmission"),
                     new MaxLengthRule(250)
-                }
-            },
-            new Field
-            {
-                Key = "shippingDate",
-                Type = "DateTime",
-                UiType = "date",
-                Properties = new Dictionary<string, object>()
-                {
-                    { "label", "Shipping Date" }
-                },
-                ValidationRules = new List<ValidationRule>
-                {
-                    new RequiredRule("sampleSubmission"),
-                    new DateRangeRule(maxDate: new DateTime(2024,10,23))
                 }
             }
         };
@@ -147,7 +160,7 @@ public class AptarRequestsController : AbpController
 
         var requestSchema = await _dbContext.RequestSchemas.FirstAsync(x => x.Name == schema.Name);
 
-        if(requestSchema is null)
+        if (requestSchema is null)
         {
             _dbContext.RequestSchemas.Add(schema);
         }
@@ -157,7 +170,15 @@ public class AptarRequestsController : AbpController
         }
 
         await _dbContext.SaveChangesAsync();
-        return Ok();
+        return Ok(schema);
+    }
+
+
+    [HttpGet("schemas")]
+    public async Task<IActionResult> GetRequestSchemas()
+    {
+        var requests = await _dbContext.RequestSchemas.ToListAsync();
+        return Ok(requests);
     }
 
     [HttpPost]
@@ -174,7 +195,7 @@ public class AptarRequestsController : AbpController
 
         var result = validator.Validate(model);
 
-        if(result.IsValid)
+        if (result.IsValid)
         {
             return Ok("Model is valid.");
         }
@@ -182,5 +203,34 @@ public class AptarRequestsController : AbpController
         {
             return BadRequest(result.Errors);
         }
+    }
+
+
+    [HttpPost("{requestTypeId:int::min(1)}")]
+    public async Task<IActionResult> AddRequest(int requestTypeId, [FromBody] JObject requestBody)
+    {
+        var schema = await _dbContext.RequestSchemas.FirstOrDefaultAsync(x => x.Id == requestTypeId);
+        if (schema is null)
+            return NotFound();
+
+        var validator = new DynamicValidator(requestBody, schema.Fields);
+        var result = validator.Validate(requestBody);
+
+        if (!result.IsValid)
+        {
+            var errors = string.Join(", ", result.Errors);
+            return BadRequest(errors);
+        }
+
+        var request = new AptarRequest
+        {
+            RequestTypeId = requestTypeId,
+            Body = requestBody
+        };
+
+        await _dbContext.AptarRequests.AddAsync(request);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok();
     }
 }
