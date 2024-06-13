@@ -160,7 +160,7 @@ public class AptarRequestsController : AbpController
             Fields = fields
         };
 
-        var requestSchema = await _dbContext.RequestSchemas.FirstAsync(x => x.Name == schema.Name);
+        var requestSchema = await _dbContext.RequestSchemas.FirstOrDefaultAsync(x => x.Name == schema.Name);
 
         if (requestSchema is null)
         {
