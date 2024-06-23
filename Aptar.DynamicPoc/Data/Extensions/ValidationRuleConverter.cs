@@ -5,69 +5,7 @@ using System.Reflection;
 
 namespace Aptar.DynamicPoc.Data.Extensions
 {
-    //public class ValidationRuleConverter : JsonConverter
-    //{
-    //    public override bool CanConvert(Type objectType)
-    //    {
-    //        return typeof(ValidationRule).IsAssignableFrom(objectType);
-    //    }
 
-    //    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-    //    {
-    //        //JObject jsonObject = JObject.Load(reader);
-    //        //var type = (string)jsonObject["Type"];
-    //        //var payloadType = (string)jsonObject["PayloadType"];
-    //        //ValidationRule rule;
-
-    //        //if (type == null || payloadType == null)
-    //        //{
-    //        //    return null;
-    //        //}
-
-    //        //switch (type)
-    //        //{
-    //        //    case nameof(RequiredRule):
-    //        //        rule = new RequiredRule((string)jsonObject["Expression"]);
-    //        //        break;
-    //        //    case nameof(RangeRule):
-    //        //        rule = new RangeRule((double)jsonObject["Min"], (double)jsonObject["Max"]);
-    //        //        break;
-    //        //    default:
-    //        //        throw new Exception($"Unknown rule type: {type}");
-    //        //        break;
-    //        //}
-
-    //        //serializer.Populate(jsonObject.CreateReader(), rule);
-    //        //return rule;
-
-    //        return null;
-    //    }
-
-    //    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-    //    {
-    //        var rule = value as ValidationRule;
-    //        var jsonObject = new JObject
-    //    {
-    //        { "Type", rule.GetType().Name }, // todo change to name
-    //            { "PayloadType", rule.GetType().FullName}
-    //    };
-
-    //        if (rule is RequiredRule requiredRule)
-    //        {
-    //            jsonObject.Add("Expression", requiredRule.Expression);
-    //        }
-    //        else if (rule is MinRule minRule)
-    //        {
-    //            jsonObject.Add("Min", minRule.Min);
-    //        }
-    //        else if (rule is MaxRule maxRule)
-    //        {
-    //            jsonObject.Add("Max", maxRule.Max);
-    //        }
-
-    //        serializer.Serialize(writer, jsonObject);
-    //    }
-    //}
 
     public class ValidationRuleConverter : JsonConverter
     {
@@ -79,8 +17,8 @@ namespace Aptar.DynamicPoc.Data.Extensions
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             JObject jsonObject = JObject.Load(reader);
-            string typeName = (string)jsonObject["PayloadType"];
-            Type type = Type.GetType(typeName) ?? throw new Exception($"Unknown rule type: {typeName}");
+            string ruleTtpe = (string)jsonObject["RuleType"];
+            Type type = ValidationRuleTypeRegistry.GetType(ruleTtpe) ?? throw new Exception($"Unknown rule type: {ruleTtpe}");
             var rule = (ValidationRule)JsonConvert.DeserializeObject(jsonObject.ToString(), type);
             serializer.Populate(jsonObject.CreateReader(), rule);
             return rule;
@@ -90,7 +28,7 @@ namespace Aptar.DynamicPoc.Data.Extensions
         {
             var rule = value as ValidationRule;
             JObject jsonObject = ConvertToJObject(rule);
-            jsonObject.AddFirst(new JProperty("PayloadType", value.GetType().AssemblyQualifiedName));
+            jsonObject.AddFirst(new JProperty("RuleType", value.GetType().Name));
 
             jsonObject.WriteTo(writer);
         }
